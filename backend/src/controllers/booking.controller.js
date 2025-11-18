@@ -111,3 +111,7 @@ export const cancelBooking = (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+
+export const getAllBookings = (req, res) => {
+  res.json(bookings);
+};
