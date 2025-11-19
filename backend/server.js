@@ -1,5 +1,8 @@
 import express from "express";
 import cors from "cors";
+import bookingRoutes from "./src/routes/booking.route.js";
+import roomRoutes from "./src/routes/room.route.js";
+import analyticsRoutes from "./src/routes/analytics.route.js";
 
 const app = express();
 app.use(express.json());
@@ -10,9 +13,9 @@ app.use(cors({
   ]
 }));
 
-import bookingRoutes from "./src/routes/booking.route.js";
-import roomRoutes from "./src/routes/room.route.js";
-import analyticsRoutes from "./src/routes/analytics.route.js";
+app.get("/", (req, res) => {
+  res.send("Backend is running!");
+});
 
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/rooms", roomRoutes);
