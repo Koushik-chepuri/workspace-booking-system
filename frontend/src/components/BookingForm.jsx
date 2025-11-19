@@ -461,7 +461,15 @@ export default function BookingForm() {
     setBookingStatus("loading");
 
     try {
-      const res = await api.post("/bookings", form);
+      const payload = {
+        userName: form.userName,
+        roomId: form.roomId,
+        startTime: new Date(form.startTime).toISOString(),
+        endTime: new Date(form.endTime).toISOString(),
+      };
+
+      const res = await api.post("/bookings", payload);
+
 
       setBookingStatus("loading");
 

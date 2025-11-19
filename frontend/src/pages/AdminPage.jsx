@@ -10,7 +10,6 @@ export default function AdminPage() {
   const [analytics, setAnalytics] = useState([]);
   const [toast, setToast] = useState(null);
 
-  // Default Date → Today (YYYY-MM-DD)
   const today = new Date().toISOString().split("T")[0];
 
   const [range, setRange] = useState({
@@ -28,9 +27,7 @@ export default function AdminPage() {
 
   const loadAnalytics = async () => {
     try {
-      const res = await api.get(
-        `/analytics?from=${range.from}&to=${range.to}`
-      );
+      const res = await api.get(`/analytics?from=${range.from}&to=${range.to}`);
       setAnalytics(res.data);
     } catch {
       showToast("Analytics error");
@@ -55,7 +52,7 @@ export default function AdminPage() {
     <div className="admin-wrapper">
       <button className="admin-home-btn" onClick={() => navigate("/")}>
         ⬅ Home
-        </button>
+      </button>
 
       {toast && <div className="toast">{toast}</div>}
 
@@ -149,17 +146,13 @@ export default function AdminPage() {
               type="date"
               className="date-input"
               value={range.from}
-              onChange={(e) =>
-                setRange({ ...range, from: e.target.value })
-              }
+              onChange={(e) => setRange({ ...range, from: e.target.value })}
             />
             <input
               type="date"
               className="date-input"
               value={range.to}
-              onChange={(e) =>
-                setRange({ ...range, to: e.target.value })
-              }
+              onChange={(e) => setRange({ ...range, to: e.target.value })}
             />
             <button className="fetch-btn" onClick={loadAnalytics}>
               Fetch
