@@ -1,16 +1,16 @@
-export const PEAK_HOURS = [
-  { start: 10, end: 13 }, // 10 AM – 1 PM
-  { start: 16, end: 19 }, // 4 PM – 7 PM
-];
+// export const PEAK_HOURS = [
+//   { start: 10, end: 13 }, // 10 AM – 1 PM
+//   { start: 16, end: 19 }, // 4 PM – 7 PM
+// ];
 
-export function isPeakHour(dateObj) {
-  const hour = dateObj.getHours();
-  const day = dateObj.getDay(); // 0 = Sun, 6 = Sat
+// export function isPeakHour(dateObj) {
+//   const hour = dateObj.getHours();
+//   const day = dateObj.getDay(); 
 
-  if (day === 0 || day === 6) return false;
+//   if (day === 0 || day === 6) return false;
 
-  return PEAK_HOURS.some(range => hour >= range.start && hour < range.end);
-}
+//   return PEAK_HOURS.some(range => hour >= range.start && hour < range.end);
+// }
 
 export function calculatePrice(startDate, endDate, baseRate) {
   const PEAK_HOURS = [
@@ -21,20 +21,20 @@ export function calculatePrice(startDate, endDate, baseRate) {
   function isPeak(date) {
     const h = date.getHours();
     const day = date.getDay();
-    if (day === 0 || day === 6) return false; // weekends NOT peak
+    if (day === 0 || day === 6) return false; 
     return PEAK_HOURS.some(p => h >= p.start && h < p.end);
   }
 
   function nextBoundary(current) {
     let list = [];
 
-    // Hour boundary
+    // hour boundary
     const hourEdge = new Date(current);
     hourEdge.setMinutes(0, 0, 0);
     hourEdge.setHours(current.getHours() + 1);
     list.push(hourEdge);
 
-    // Peak boundaries
+    // peak boundaries
     PEAK_HOURS.forEach(p => {
       const peakStart = new Date(current);
       peakStart.setHours(p.start, 0, 0, 0);
@@ -46,7 +46,7 @@ export function calculatePrice(startDate, endDate, baseRate) {
       if (peakEnd > current) list.push(peakEnd);
     });
 
-    // Booking end
+    // booking end
     list.push(endDate);
 
     return list.filter(d => d > current).sort((a,b) => a-b)[0];

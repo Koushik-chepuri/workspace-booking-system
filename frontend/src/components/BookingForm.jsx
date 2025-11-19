@@ -2,9 +2,8 @@ import { useState, useEffect } from "react";
 import { api } from "../api/axios";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import "../styling/BookingForm.css";
-import { calculatePrice } from "../utils/pricing";
 
-// ---------- UTILITIES ---------
+// utils
 function getRoundedStartTime() {
   const now = new Date();
   now.setSeconds(0, 0);
@@ -50,19 +49,7 @@ function isPastSlot(startDate) {
   return startDate.getTime() < Date.now();
 }
 
-const PEAK_HOURS = [
-  { start: 10, end: 13 },
-  { start: 16, end: 19 },
-];
-
-function isPeakHour(d) {
-  const hour = d.getHours();
-  const day = d.getDay();
-  if (day === 0 || day === 6) return false;
-  return PEAK_HOURS.some((range) => hour >= range.start && hour < range.end);
-}
-
-// ---------- TIMELINE ----------
+// timneline
 function calculatePriceBlocks(startDate, endDate, baseRate) {
   const PEAK_HOURS = [
     { start: 10, end: 13 },
@@ -139,10 +126,8 @@ export default function BookingForm() {
   const [rate, setRate] = useState(null);
   const [priceBlocks, setPriceBlocks] = useState([]);
   const [bookingStatus, setBookingStatus] = useState("idle");
-  const [bookingDetails, setBookingDetails] = useState(null);
-  const [countdown, setCountdown] = useState(10);
 
-  const [toast, setToast] = useState(null); // 🔥 TOAST STATE
+  const [toast, setToast] = useState(null); //for toast msg
 
   const [form, setForm] = useState({
     roomId: "",
@@ -161,13 +146,13 @@ export default function BookingForm() {
   const [params] = useSearchParams();
   const roomFromQuery = params.get("roomId");
 
-  // ---------- TOAST ----------
+  // toast   
   function showToast(msg) {
     setToast(msg);
     setTimeout(() => setToast(null), 3000);
   }
 
-  // ---------- SUCCESS REDIRECT ----------
+  // redirect
   useEffect(() => {
     if (bookingStatus !== "success") return;
 
@@ -248,7 +233,7 @@ export default function BookingForm() {
     },
   ];
 
-  // ---------- FETCH ROOMS ----------
+  // fetch rooms
   useEffect(() => {
     async function load() {
       try {
@@ -270,7 +255,7 @@ export default function BookingForm() {
     load();
   }, []);
 
-  // ---------- SMART DEFAULT TIMES ----------
+  // default times
   useEffect(() => {
     if (!selectedRoom || form.startTime) return;
 
@@ -284,7 +269,7 @@ export default function BookingForm() {
     }));
   }, [selectedRoom]);
 
-  // ---------- ROOM SELECT ----------
+  // room select
   const handleRoomSelect = (e) => {
     const id = e.target.value;
     const room = rooms.find((r) => r.id === id);
@@ -294,7 +279,7 @@ export default function BookingForm() {
     setErrors((e) => ({ ...e, roomId: "" }));
   };
 
-  // ---------- INPUT CHANGE ----------
+  // input change
   const handleChange = (e) => {
     const { name, value } = e.target;
     let updatedForm = { ...form, [name]: value };
@@ -350,7 +335,7 @@ export default function BookingForm() {
     }
   };
 
-  // ---------- PRICE CALC ----------
+  // price calc.
   useEffect(() => {
     if (!form.startTime || !form.endTime || !rate) {
       setPriceBlocks([]);
@@ -389,7 +374,7 @@ export default function BookingForm() {
     setIsDurationExceeded(false);
   }, [form.startTime, form.endTime, rate]);
 
-  // ---------- GLOW ----------
+  
   function animateGlow() {
     document.querySelectorAll(".input").forEach((input) => {
       input.classList.add("flash");
@@ -397,7 +382,6 @@ export default function BookingForm() {
     });
   }
 
-  // ---------- END SHORTCUTS ----------
   function adjustEnd(mins) {
     if (!form.endTime) return;
 
@@ -421,7 +405,6 @@ export default function BookingForm() {
     animateGlow();
   }
 
-  // ---------- APPLY SLOT ----------
   function applySlot(start, end) {
     setForm((f) => ({
       ...f,
@@ -438,7 +421,6 @@ export default function BookingForm() {
     });
   }
 
-  // ---------- VALIDATION ----------
   function validateForm() {
     const newErrors = {};
     const { roomId, userName, startTime, endTime } = form;
@@ -471,7 +453,6 @@ export default function BookingForm() {
     return Object.keys(newErrors).length === 0;
   }
 
-  // ---------- SUBMIT ----------
   async function handleSubmit(e) {
     e.preventDefault();
 
@@ -506,7 +487,7 @@ export default function BookingForm() {
         err.response?.data?.error ||
         "Booking failed. Slot may already be booked.";
 
-      showToast(message); // 🔥 SHOW ERROR TOAST
+      showToast(message); 
     }
   }
 
@@ -522,7 +503,7 @@ export default function BookingForm() {
   return (
     <div className="booking-form-wrapper">
       
-      {/* 🔥 TOAST UI */}
+      {/* toast UI */}
       {toast && <div className="toast-message">{toast}</div>}
 
       <div className="booking-form-card fade-in">
@@ -543,7 +524,7 @@ export default function BookingForm() {
           Choose your slot — pricing updates instantly.
         </p>
 
-        {/* PEAK WARNING */}
+        {/* peak warning */}
         {priceBlocks.length > 0 &&
           (() => {
             const hasPeak = priceBlocks.some((b) => b.isPeak);
@@ -573,7 +554,7 @@ export default function BookingForm() {
 
         {bookingStatus !== "success" && (
           <form className="booking-form" onSubmit={handleSubmit}>
-            {/* ROOM + NAME */}
+            {/* room and name */}
             <div className="booking-form-row">
               <div className="booking-field">
                 <label>Select Room</label>
@@ -615,7 +596,7 @@ export default function BookingForm() {
               </div>
             </div>
 
-            {/* START + END */}
+            {/* start and end */}
             <div className="booking-form-row">
               <div className="booking-field">
                 <label>Start Time</label>
@@ -671,7 +652,7 @@ export default function BookingForm() {
               </div>
             </div>
 
-            {/* SUGGESTED SLOTS */}
+            {/* suggest slots */}
             <div className="suggested-slots">
               <h4>Suggested Slots</h4>
 
@@ -702,7 +683,7 @@ export default function BookingForm() {
               </div>
             </div>
 
-            {/* PRICE BOX */}
+            {/* price */}
             {duration > 0 && (
               <div className="price-box">
                 <h4>Estimated Price</h4>
@@ -725,7 +706,7 @@ export default function BookingForm() {
               </div>
             )}
 
-            {/* TIMELINE */}
+            {/* timeline */}
             {priceBlocks.length > 0 && (
               <div className="timeline-wrapper">
                 <h4>Timeline</h4>
@@ -749,7 +730,7 @@ export default function BookingForm() {
               </div>
             )}
 
-            {/* BREAKDOWN */}
+            {/* breakdown */}
             {priceBlocks.length > 0 && (
               <div className="price-breakdown">
                 <h4>Price Breakdown</h4>

@@ -2,11 +2,8 @@ import { rooms } from "../models/rooms.js";
 import { bookings } from "../models/bookings.js";
 import { isOverlapping } from "../utils/time.js";
 import { v4 as uuidv4 } from "uuid";
-import { calculatePrice } from "../utils/pricing.js"; // NEW CORRECT LOGIC
+import { calculatePrice } from "../utils/pricing.js"; 
 
-// ---------------------------
-// CREATE BOOKING
-// ---------------------------
 export const createBooking = (req, res) => {
   try {
     const { roomId, userName, startTime, endTime } = req.body;
@@ -25,7 +22,7 @@ export const createBooking = (req, res) => {
       return res.status(400).json({ error: "startTime must be < endTime" });
     }
 
-    // Max duration: 12 hours
+    // max duration: 12 hours
     const durationHours = (end - start) / (1000 * 60 * 60);
     if (durationHours > 12) {
       return res
@@ -33,9 +30,7 @@ export const createBooking = (req, res) => {
         .json({ error: "Bookings cannot exceed 12 hours" });
     }
 
-    // ---------------------------
-    // CONFLICT DETECTION
-    // ---------------------------
+    // detect conflict
     const existing = bookings.filter(
       (b) => b.roomId === roomId && b.status === "CONFIRMED"
     );
@@ -59,9 +54,6 @@ export const createBooking = (req, res) => {
       }
     }
 
-    // ---------------------------
-    // CORRECT PEAK-BOUNDARY-AWARE PRICING
-    // ---------------------------
     const totalPrice = calculatePrice(start, end, room.baseRate);
 
     const newBooking = {
@@ -83,9 +75,6 @@ export const createBooking = (req, res) => {
   }
 };
 
-// ---------------------------
-// CANCEL BOOKING
-// ---------------------------
 export const cancelBooking = (req, res) => {
   try {
     const { id } = req.params;
