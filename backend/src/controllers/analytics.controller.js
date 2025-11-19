@@ -14,8 +14,8 @@ export const getAnalytics = (req, res) => {
     endRange.setHours(23, 59, 59, 999); 
 
     const confirmed = bookings.filter(b => {
-      if (b.status !== "CONFIRMED") return false;
-
+        if (b.status !== "CONFIRMED") return false;
+        
       const st = new Date(b.startTime);
 
       return st >= startRange && st <= endRange;
