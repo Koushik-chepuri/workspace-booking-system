@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { api } from "../api/axios";
-import { useSearchParams } from "react-router-dom";
-import "../styling/BookingForm.css";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import "../styling/BookingForm.css"; 
 
 // ---------- UTILITIES ----------
 function getRoundedStartTime() {
@@ -9,9 +9,7 @@ function getRoundedStartTime() {
   now.setSeconds(0, 0);
 
   const m = now.getMinutes();
-  if (m === 0 || m === 30) return now;
-
-  if (m < 30) now.setMinutes(30);
+  if (m === 0 || m === 30) now.setMinutes(30);
   else {
     now.setMinutes(0);
     now.setHours(now.getHours() + 1);
@@ -48,7 +46,7 @@ function getMinDateTime() {
 }
 
 function isPastSlot(startDate) {
-  return startDate.getTime() < Date.now();
+  return startDate.getTime() < Date.now(); 
 }
 
 const PEAK_HOURS = [
@@ -59,7 +57,7 @@ const PEAK_HOURS = [
 function isPeakHour(d) {
   const hour = d.getHours();
   const day = d.getDay();
-  if (day === 0 || day === 6) return false;
+  if (day === 0 || day === 6) return false; 
   return PEAK_HOURS.some(range => hour >= range.start && hour < range.end);
 }
 
@@ -90,11 +88,19 @@ function calculatePriceBlocks(startDate, endDate, baseRate) {
   return out;
 }
 
+// Validation Constant
+const MAX_DURATION_MS = 12 * 60 * 60 * 1000; // 12 hours
+
 export default function BookingForm() {
+  const navigate = useNavigate();
+
   const [rooms, setRooms] = useState([]);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [rate, setRate] = useState(null);
   const [priceBlocks, setPriceBlocks] = useState([]);
+  const [bookingStatus, setBookingStatus] = useState("idle"); 
+  const [bookingDetails, setBookingDetails] = useState(null);
+  const [countdown, setCountdown] = useState(10);
 
   const [form, setForm] = useState({
     roomId: "",
@@ -103,60 +109,96 @@ export default function BookingForm() {
     endTime: "",
   });
 
+  const [errors, setErrors] = useState({}); 
+
   const [duration, setDuration] = useState(0);
   const [totalCost, setTotalCost] = useState(0);
   const [result, setResult] = useState("");
+  
+  const [isDurationExceeded, setIsDurationExceeded] = useState(false); 
 
   const [params] = useSearchParams();
   const roomFromQuery = params.get("roomId");
   
-    const suggestedSlots = [
-        {
-            label: "+1 hour",
-            getTimes: () => {
-            const start = new Date(form.startTime);
-            const end = new Date(start.getTime() + 60 * 60 * 1000);
-            return { start, end };
-            }
-        },
+  useEffect(() => {
+    if (bookingStatus !== "success") return;
 
-        {
-            label: "10–11 AM",
-            getTimes: () => {
-            const d = new Date();
-            d.setHours(10, 0, 0, 0);
-            return { start: d, end: new Date(d.getTime() + 60 * 60 * 1000) };
-            }
-        },
-
-        {
-            label: "Tomorrow same time",
-            getTimes: () => {
-            const start = new Date(form.startTime);
-            start.setDate(start.getDate() + 1);
-            return { start, end: new Date(start.getTime() + 60 * 60 * 1000) };
-            }
-        },
-
-        {
-            label: "After lunch (2–3 PM)",
-            getTimes: () => {
-            const d = new Date();
-            d.setHours(14, 0, 0, 0);
-            return { start: d, end: new Date(d.getTime() + 60 * 60 * 1000) };
-            }
-        },
-
-        {
-            label: "5–6 PM — Peak!",
-            isPeak: true,
-            getTimes: () => {
-            const d = new Date();
-            d.setHours(17, 0, 0, 0);
-            return { start: d, end: new Date(d.getTime() + 60 * 60 * 1000) };
-            }
+    const interval = setInterval(() => {
+        setCountdown((c) => {
+        if (c <= 1) {
+            clearInterval(interval);
+            window.location.href = "/";
         }
-        ];
+        return c - 1;
+        });
+    }, 1000);
+
+    return () => clearInterval(interval);
+    }, [bookingStatus]);
+
+  const getCurrentDatePart = () => {
+    if (!form.startTime) return new Date();
+    const d = new Date(form.startTime);
+    d.setHours(0, 0, 0, 0); 
+    return d;
+  };
+
+  const suggestedSlots = [
+    {
+      label: "+1 hour",
+      getTimes: () => {
+        if (!form.startTime || !form.endTime) return { start: null, end: null };
+        
+        const start = new Date(form.startTime);
+        const end = new Date(form.endTime);
+        const currentDurationMs = end.getTime() - start.getTime();
+
+        const newStart = new Date(start.getTime() + 60 * 60 * 1000); 
+        const newEnd = new Date(newStart.getTime() + currentDurationMs);
+
+        return { start: newStart, end: newEnd };
+      }
+    },
+
+    {
+      label: "10–11 AM",
+      getTimes: (currentDatePart) => {
+        const d = new Date(currentDatePart);
+        d.setHours(10, 0, 0, 0);
+        return { start: d, end: new Date(d.getTime() + 60 * 60 * 1000) };
+      }
+    },
+
+    {
+      label: "Tomorrow same time",
+      getTimes: () => {
+        if (!form.startTime) return { start: null, end: null };
+        const start = new Date(form.startTime);
+        start.setDate(start.getDate() + 1);
+        return { start, end: new Date(start.getTime() + 60 * 60 * 1000) };
+      }
+    },
+
+    {
+      label: "After lunch (2–3 PM)",
+      getTimes: (currentDatePart) => {
+        const d = new Date(currentDatePart);
+        d.setHours(14, 0, 0, 0);
+        return { start: d, end: new Date(d.getTime() + 60 * 60 * 1000) };
+      }
+    },
+
+    {
+      label: "5–6 PM — Peak!",
+      isPeak: true,
+      getTimes: (currentDatePart) => {
+        const d = new Date(currentDatePart);
+        d.setHours(17, 0, 0, 0);
+        return { start: d, end: new Date(d.getTime() + 60 * 60 * 1000) };
+      }
+    }
+  ];
+  
   // ---------- FETCH ROOMS ----------
   useEffect(() => {
     async function load() {
@@ -181,7 +223,7 @@ export default function BookingForm() {
 
   // ---------- APPLY SMART DEFAULT START/END ----------
   useEffect(() => {
-    if (!selectedRoom) return;
+    if (!selectedRoom || form.startTime) return; 
 
     const start = getRoundedStartTime();
     const end = new Date(start.getTime() + 60 * 60 * 1000);
@@ -200,21 +242,98 @@ export default function BookingForm() {
     setSelectedRoom(room);
     setRate(room?.baseRate || null);
     setForm(f => ({ ...f, roomId: id }));
+    setErrors(e => ({ ...e, roomId: "" })); 
   };
 
   // ---------- INPUT CHANGE ----------
   const handleChange = e => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    let updatedForm = { ...form, [name]: value };
+    setForm(updatedForm);
+    
+    // Clear the error for the changed field
+    setErrors(e => ({ ...e, [name]: "" })); 
+
+    if (name === "startTime" && form.endTime) {
+        const newStart = new Date(value);
+        const end = new Date(form.endTime);
+
+        if (end <= newStart || isNaN(end.getTime())) {
+            const newEnd = new Date(newStart.getTime() + 30 * 60 * 1000);
+            setForm(f => ({ ...f, startTime: value, endTime: formatLocalInput(newEnd) }));
+        }
+    }
   };
 
-  // ---------- PRICE CALC ----------
+  // ---------- START TIME BLUR VALIDATION ----------
+  const handleTimeBlur = (e) => {
+    const { name, value } = e.target;
+    const start = new Date(value);
+    
+    if (name === "startTime" && isPastSlot(start)) {
+        const minTime = getMinDateTime().substring(11);
+        setErrors(e => ({ 
+            ...e, 
+            startTime: `Start time cannot be in the past. Choose a time after ${minTime}.` 
+        }));
+    }
+  };
+  
+  // ---------- END TIME BLUR VALIDATION (NEW HANDLER) ----------
+  const handleEndBlur = (e) => {
+    const start = new Date(form.startTime);
+    const end = new Date(e.target.value);
+    
+    if (form.startTime && end <= start) {
+        setErrors(e => ({ 
+            ...e, 
+            endTime: "End time must be after the start time." 
+        }));
+    } else if (form.startTime) {
+        const durationMs = end.getTime() - start.getTime();
+        if (durationMs > MAX_DURATION_MS) {
+            setErrors(e => ({ 
+                ...e, 
+                endTime: "Booking duration cannot exceed 12 hours." 
+            }));
+        }
+    }
+  };
+  // --------------------------------------------------------
+
+  // ---------- PRICE CALC & VALIDATION EFFECT ----------
   useEffect(() => {
-    if (!form.startTime || !form.endTime || !rate) return;
+    if (!form.startTime || !form.endTime || !rate) {
+        setPriceBlocks([]);
+        setDuration(0);
+        setTotalCost(0);
+        setIsDurationExceeded(false); 
+        return;
+    }
 
     const start = new Date(form.startTime);
     const end = new Date(form.endTime);
-    if (end <= start) return;
+    
+    if (end <= start) {
+        setPriceBlocks([]);
+        setDuration(0);
+        setTotalCost(0);
+        setIsDurationExceeded(false); 
+        return;
+    }
 
+    const durationMs = end.getTime() - start.getTime();
+    const currentDurationHours = durationMs / (1000 * 60 * 60);
+
+    if (durationMs > MAX_DURATION_MS) {
+        setPriceBlocks([]);
+        setDuration(currentDurationHours); 
+        setTotalCost(0); 
+        setIsDurationExceeded(true); 
+        return;
+    }
+
+    // SUCCESS CASE
     const blocks = calculatePriceBlocks(start, end, rate);
     setPriceBlocks(blocks);
 
@@ -223,6 +342,7 @@ export default function BookingForm() {
 
     setDuration(hrs);
     setTotalCost(Math.round(total));
+    setIsDurationExceeded(false); 
   }, [form.startTime, form.endTime, rate]);
 
   // ---------- SMOOTH FEEDBACK ----------
@@ -233,11 +353,21 @@ export default function BookingForm() {
     });
   }
 
-  // ---------- QUICK DURATION BUTTONS ----------
+  // ---------- QUICK DURATION BUTTONS (Extension Logic) ----------
   function adjustEnd(mins) {
+    if (!form.endTime) return; 
+
+    const end = new Date(form.endTime);
+    const newEnd = new Date(end.getTime() + mins * 60 * 1000);
     const start = new Date(form.startTime);
-    const end = new Date(start.getTime() + mins * 60 * 1000);
-    setForm(f => ({ ...f, endTime: formatLocalInput(end) }));
+    
+    if ((newEnd.getTime() - start.getTime()) > MAX_DURATION_MS) {
+        setErrors(e => ({ ...e, endTime: "Extending duration exceeds the 12-hour limit." }));
+        return;
+    }
+
+    setForm(f => ({ ...f, endTime: formatLocalInput(newEnd) }));
+    setErrors(e => ({ ...e, endTime: "" })); 
     animateGlow();
   }
 
@@ -249,6 +379,7 @@ export default function BookingForm() {
       endTime: formatLocalInput(end),
     }));
 
+    setErrors({}); 
     animateGlow();
 
     document.querySelector(".booking-form-row")?.scrollIntoView({
@@ -257,16 +388,85 @@ export default function BookingForm() {
     });
   }
 
+  // ---------- FORM VALIDATION (PERFECT VALIDATION) ----------
+  function validateForm() {
+    const newErrors = {};
+    const { roomId, userName, startTime, endTime } = form;
+
+    if (!roomId) newErrors.roomId = "Please select a room.";
+    if (!userName.trim()) newErrors.userName = "Please enter your name.";
+
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+
+    if (!startTime || isNaN(start.getTime())) {
+      newErrors.startTime = "Please select a valid start time.";
+    } else if (isPastSlot(start)) { 
+      const minTime = getMinDateTime().substring(11);
+      newErrors.startTime = `Start time cannot be in the past. Choose a time after ${minTime}.`;
+    }
+
+    if (!endTime || isNaN(end.getTime())) {
+      newErrors.endTime = "Please select a valid end time.";
+    } else if (end <= start) {
+      newErrors.endTime = "End time must be after the start time.";
+    } else {
+        const durationMs = end.getTime() - start.getTime();
+        if (durationMs > MAX_DURATION_MS) {
+            newErrors.endTime = "Booking duration cannot exceed 12 hours.";
+        }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }
+  
   // ---------- SUBMIT ----------
   async function handleSubmit(e) {
     e.preventDefault();
+
+    if (!validateForm()) return;
+
+    setBookingStatus("loading");
+    setResult(""); // Hide old JSON
+
     try {
-      const res = await api.post("/bookings", form);
-      setResult(JSON.stringify(res.data, null, 2));
+        const res = await api.post("/bookings", form);
+
+        setBookingStatus("loading");
+
+        setTimeout(() => {
+        navigate("/booking-success", {
+            state: {
+            room: selectedRoom,
+            form,
+            totalCost,
+            bookingId: res.data.id,
+            },
+        });
+        }, 1000); 
+
+        setTimeout(() => {
+        window.location.href = "/";
+        }, 10000);
+
     } catch (err) {
-      setResult(JSON.stringify(err.response?.data || { error: "Something went wrong" }, null, 2));
+        setBookingStatus("idle");
+        setResult(JSON.stringify(err.response?.data || { error: "Something went wrong" }, null, 2));
     }
-  }
+    }
+
+
+  const hasFormErrors = Object.keys(errors).length > 0;
+  const isFormValid =
+  form.roomId &&
+  form.userName.trim().length > 0 &&
+  form.startTime &&
+  form.endTime &&
+  !isDurationExceeded &&
+  duration > 0 &&
+  Object.values(errors).every((msg) => msg === "");
+
 
   return (
     <div className="booking-form-wrapper">
@@ -297,14 +497,28 @@ export default function BookingForm() {
 
           return <div className="peak-warning partial">⚠ Some of your slot overlaps with peak hours.</div>;
         })()}
-
+        
+        {bookingStatus === "loading" && (
+        <div className="booking-loader">
+            <div className="spinner"></div>
+            <p>Processing your booking…</p>
+        </div>
+        )}
+   
+        {bookingStatus !== "success" && (
         <form className="booking-form" onSubmit={handleSubmit}>
+
 
           {/* ROOM + NAME */}
           <div className="booking-form-row">
             <div className="booking-field">
               <label>Select Room</label>
-              <select className="input" required value={form.roomId} onChange={handleRoomSelect}>
+              <select 
+                className={`input ${errors.roomId ? 'input-error' : ''}`}
+                required 
+                value={form.roomId} 
+                onChange={handleRoomSelect}
+              >
                 <option value="">-- Select Room --</option>
                 {rooms.map(r => (
                   <option key={r.id} value={r.id}>
@@ -312,17 +526,20 @@ export default function BookingForm() {
                   </option>
                 ))}
               </select>
+              {errors.roomId && <div className="error-message">{errors.roomId}</div>} 
             </div>
 
             <div className="booking-field">
               <label>Your Name</label>
               <input
-                className="input"
+                className={`input ${errors.userName ? 'input-error' : ''}`}
                 placeholder="e.g. Tony Stark"
                 name="userName"
                 required
+                value={form.userName}
                 onChange={handleChange}
               />
+              {errors.userName && <div className="error-message">{errors.userName}</div>} 
             </div>
           </div>
 
@@ -332,34 +549,38 @@ export default function BookingForm() {
               <label>Start Time</label>
               <input
                 type="datetime-local"
-                className="input"
+                className={`input ${errors.startTime ? 'input-error' : ''}`}
                 name="startTime"
-                min={getMinDateTime()}
+                min={getMinDateTime()} 
                 value={form.startTime}
                 onChange={handleChange}
+                onBlur={handleTimeBlur}
                 required
               />
+              {errors.startTime && <div className="error-message">{errors.startTime}</div>} 
             </div>
 
             <div className="booking-field">
               <label>End Time</label>
               <input
                 type="datetime-local"
-                className="input"
+                className={`input ${errors.endTime ? 'input-error' : ''}`}
                 name="endTime"
                 min={form.startTime}
                 value={form.endTime}
                 onChange={handleChange}
+                onBlur={handleEndBlur} 
                 required
               />
+              {errors.endTime && <div className="error-message">{errors.endTime}</div>} 
 
               {/* QUICK DURATION SHORTCUTS */}
-              {/* <div className="quick-duration">
+              <div className="quick-duration">
                 <button type="button" onClick={() => adjustEnd(30)}>+30m</button>
                 <button type="button" onClick={() => adjustEnd(60)}>+1h</button>
                 <button type="button" onClick={() => adjustEnd(120)}>+2h</button>
                 <button type="button" onClick={() => adjustEnd(180)}>+3h</button>
-              </div> */}
+              </div>
             </div>
           </div>
 
@@ -369,8 +590,9 @@ export default function BookingForm() {
 
             <div className="slot-chips">
             {suggestedSlots.map((slot, index) => {
-                const { start, end } = slot.getTimes();
-                const disabled = isPastSlot(start);
+                const currentDatePart = getCurrentDatePart();
+                const { start, end } = slot.getTimes(currentDatePart); 
+                const disabled = !start || isPastSlot(start); 
 
                 return (
                 <button
@@ -398,8 +620,22 @@ export default function BookingForm() {
           {duration > 0 && (
             <div className="price-box">
               <h4>Estimated Price</h4>
-              <div className="price-main">₹{totalCost}</div>
+              
+              {isDurationExceeded ? (
+                <div className="price-main exceeded-limit">
+                    ⚠ Limit Exceeded
+                </div>
+              ) : (
+                <div className="price-main">
+                    ₹{totalCost}
+                </div>
+              )}
+              
               <p>{duration.toFixed(1)} hrs total</p>
+              
+              {isDurationExceeded && 
+                <p className="warning-text">Max booking time is 12 hours.</p>}
+
             </div>
           )}
 
@@ -437,8 +673,8 @@ export default function BookingForm() {
             </div>
           )}
 
-          <button className="booking-submit">Confirm Booking</button>
-        </form>
+          <button className="booking-submit" disabled={!isFormValid}>Confirm Booking</button>
+        </form> )}
 
         {/* API RESPONSE */}
         {result && (

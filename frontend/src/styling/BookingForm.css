@@ -10,12 +10,28 @@
 .booking-form-card {
   width: 100%;
   max-width: 760px;
-  background: radial-gradient(circle at top left, #eef2ff, #ffffff 55%, #f9fafb);
+  background: radial-gradient(circle at bottom left, #c9d3f9 0%, #d2dbff 50%, #78b1ef 100%);
   border-radius: 20px;
   padding: 32px;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
   border: 1px solid rgba(148, 163, 184, 0.25);
   animation: fadeIn 0.4s ease-out;
+}
+
+/* Styling for all error messages (already requested in red) */
+.error-message {
+  color: #d93025; /* Red color */
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-top: 5px;
+  animation: fadeIn 0.3s;
+}
+
+/* NEW: Styling to make the input/select border red when an error is present */
+.input-error {
+  border-color: #d93025 !important; 
+  border-width: 2px;
+  box-shadow: 0 0 0 1px #d93025; 
 }
 
 @keyframes fadeIn {
@@ -233,6 +249,16 @@
   color: #6b7280;
 }
 
+/* Optional: Style for when the 12-hour limit is exceeded */
+.price-main.exceeded-limit {
+    color: #d93025;
+    font-weight: bold;
+}
+.warning-text {
+    color: #d93025;
+    font-size: 0.9rem;
+}
+
 /* -------------------- TIMELINE -------------------- */
 .timeline-wrapper {
   margin-top: 25px;
@@ -254,7 +280,7 @@
 }
 
 .timeline-block.normal {
-  background: #4f8cf7;
+  background: #96f088;
 }
 
 .timeline-block.peak {
@@ -319,7 +345,7 @@
   width: 100%;
   border: none;
   border-radius: 999px;
-  background: linear-gradient(135deg, #6366f1, #4338ca);
+  background: var(--gradient-main);
   color: white;
   font-size: 1rem;
   font-weight: 600;
@@ -330,6 +356,12 @@
 .booking-submit:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 18px rgba(79, 70, 229, 0.25);
+}
+
+.booking-submit:disabled {
+  background-color: #ccc; /* A clear gray color */
+  cursor: not-allowed;
+  opacity: 0.6; /* Optionally reduce opacity */
 }
 
 /* -------------------- API OUTPUT -------------------- */
@@ -358,6 +390,51 @@
   font-size: 0.85rem;
 }
 
+.booking-confirm-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 8px 26px rgba(0,0,0,0.1);
+  margin-top: 24px;
+  animation: fadeIn 0.4s ease-out;
+  text-align: center;
+}
+
+.confirm-room {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 16px 0;
+  justify-content: center;
+}
+
+.confirm-room img {
+  width: 110px;
+  height: 80px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.confirm-info p {
+  margin: 6px 0;
+  font-size: 0.95rem;
+}
+
+.redirect-note {
+  margin: 14px 0 8px;
+  color: #4b5563;
+}
+
+.home-btn {
+  margin-top: 10px;
+  padding: 10px 20px;
+  border-radius: 12px;
+  background: var(--gradient-main);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
 
 /* -------------------- MOBILE -------------------- */
 @media (max-width: 650px) {
@@ -369,4 +446,39 @@
     width: 90px;
     height: 65px;
   }
+}
+.success-full-card {
+  width: 100%;
+  max-width: 760px;
+  background: radial-gradient(circle at bottom left, #c9d3f9 0%, #d2dbff 50%, #78b1ef 100%);
+  border-radius: 20px;
+  padding: 40px 32px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  animation: fadeIn 0.45s ease-out;
+  text-align: center;
+}
+
+/* Remove inner white card look */
+.success-full-card .confirm-inner {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(6px);
+  padding: 20px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.25);
+  display: inline-block;
+  margin: 10px auto 0;
+}
+
+.success-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin-bottom: 12px;
+  color: #111827;
+}
+
+.success-subtext {
+  color: #1f2937;
+  font-weight: 500;
+  margin-bottom: 20px;
 }
