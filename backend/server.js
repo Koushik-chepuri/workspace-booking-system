@@ -9,8 +9,10 @@ app.use(express.json());
 app.use(cors({
   origin: [
     "http://localhost:5173",
-    "https://workspace-booking-system-coral.vercel.app/"
-  ]
+    "https://workspace-booking-system-coral.vercel.app"
+    ],
+    methods: ["GET", "POST", "PATCH", "DELETE"],
+  allowedHeaders: ["Content-Type"]
 }));
 
 app.get("/", (req, res) => {
