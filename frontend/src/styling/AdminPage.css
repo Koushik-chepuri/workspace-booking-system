@@ -128,7 +128,7 @@
 }
 
 .admin-home-btn {
-  position: absolute;
+  position: fixed;
   top: 20px;
   left: 20px;
   background: #4f46e5;
@@ -141,6 +141,7 @@
   letter-spacing: 0.3px;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
   transition: 0.2s ease;
+  z-index: 9999;
 }
 
 .admin-home-btn:hover {

@@ -3,7 +3,12 @@ import cors from "cors";
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "https://workspace-booking-system-coral.vercel.app/"
+  ]
+}));
 
 import bookingRoutes from "./src/routes/booking.route.js";
 import roomRoutes from "./src/routes/room.route.js";
