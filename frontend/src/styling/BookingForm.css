@@ -482,3 +482,44 @@
   font-weight: 500;
   margin-bottom: 20px;
 }
+
+/* -------------------- TOAST -------------------- */
+.toast-message {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ff4d4d;
+  color: white;
+  padding: 14px 22px;
+  border-radius: 14px;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  z-index: 9999;
+  min-width: 260px;
+  text-align: center;
+
+  animation: toastPop 0.35s ease-out;
+}
+
+@keyframes toastPop {
+  0% {
+    transform: translate(-50%, -20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+
+/* -------------------- WRAPPER -------------------- */
+.booking-form-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 32px 16px;
+}
+
+/* The rest is EXACTLY the same */

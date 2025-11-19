@@ -1,30 +1,36 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "../styling/SuccessCard.css";
 
 export default function SuccessCard() {
   const { state } = useLocation();
   const navigate = useNavigate();
-  const [countdown, setCountdown] = useState(10);
 
-  // No state? User came directly → send home
+  const [countdown, setCountdown] = useState(10);
+  const [stopped, setStopped] = useState(false);
+
+  const timerRef = useRef(null); 
+
   useEffect(() => {
     if (!state) navigate("/");
   }, []);
 
   useEffect(() => {
-    const t = setInterval(() => {
+    if (stopped) return;
+
+    timerRef.current = setInterval(() => {
       setCountdown((c) => {
         if (c <= 1) {
-          clearInterval(t);
+          clearInterval(timerRef.current);
           navigate("/");
         }
         return c - 1;
       });
     }, 1000);
 
-    return () => clearInterval(t);
-  }, []);
+    // Cleanup
+    return () => clearInterval(timerRef.current);
+  }, [stopped]);
 
   if (!state) return null;
 
@@ -34,51 +40,59 @@ export default function SuccessCard() {
     <div className="success-wrapper">
       <div className="success-card">
 
-        <h2 className="success-title">🎉 Booking Confirmed!</h2>
-        <p className="success-sub">Your room is successfully booked.</p>
+        <div className="success-check">
+          <svg viewBox="0 0 52 52">
+            <circle className="check-circle" cx="26" cy="26" r="24" />
+            <path className="check" d="M14 27 l8 8 l16 -16" />
+          </svg>
+        </div>
 
-        <div className="success-room">
-          <img src={room.image} alt="" />
-          <div>
-            <h3>{room.name}</h3>
-            <p>₹{room.baseRate}/hr — {room.capacity} people</p>
+        <h2 className="success-title">Booking Confirmed!</h2>
+
+        <div className="success-box compact-box">
+          <div className="success-room-inline small">
+            <img src={room.image} alt="" />
+            <div>
+              <h3>{room.name}</h3>
+              <p>₹{room.baseRate}/hr • {room.capacity} people</p>
+            </div>
           </div>
+
+          <ul className="success-list small">
+            <li className="row">
+              <span className="label">Customer</span>
+              <span className="value">{form.userName}</span>
+            </li>
+            <li className="row">
+              <span className="label">From</span>
+              <span className="value">{new Date(form.startTime).toLocaleString()}</span>
+            </li>
+            <li className="row">
+              <span className="label">To</span>
+              <span className="value">{new Date(form.endTime).toLocaleString()}</span>
+            </li>
+            <li className="row price-row">
+              <span className="label">Total Cost</span>
+              <span className="value price">₹{totalCost}</span>
+            </li>
+            <li className="row id-row">
+              <span className="label">Booking ID</span>
+              <span className="value id">{bookingId.slice(0, 8).toUpperCase()}…</span>
+            </li>
+          </ul>
         </div>
 
-        <div className="success-details-card">
+        <p className="redirect">Redirecting in {countdown}s…</p>
 
-        <div className="success-row">
-            <span className="label">Booked by</span>
-            <span className="value">{form.userName}</span>
-        </div>
-
-        <div className="success-row">
-            <span className="label">From</span>
-            <span className="value">{new Date(form.startTime).toLocaleString()}</span>
-        </div>
-
-        <div className="success-row">
-            <span className="label">To</span>
-            <span className="value">{new Date(form.endTime).toLocaleString()}</span>
-        </div>
-
-        <div className="success-row total">
-            <span className="label">Total Cost</span>
-            <span className="value">₹{totalCost}</span>
-        </div>
-
-        <div className="success-row">
-            <span className="label">Booking ID</span>
-            <span className="value id">{bookingId}</span>
-        </div>
-
-        </div>
-
-        <p className="redirect">
-          Redirecting to homepage in <strong>{countdown}</strong>s…
-        </p>
-
-        <button className="home-btn" onClick={() => navigate("/")}>
+        <button
+          className="home-btn"
+          onClick={() => {
+            setStopped(true);
+            clearInterval(timerRef.current); 
+            timerRef.current = null;
+            navigate("/");
+          }}
+        >
           Go to Homepage
         </button>
 

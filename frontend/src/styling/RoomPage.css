@@ -96,3 +96,24 @@
 .rooms-floating-btn:active {
   transform: translateY(0);
 }
+
+.admin-nav-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #4f46e5;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  z-index: 2000;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+  transition: 0.2s;
+}
+
+.admin-nav-btn:hover {
+  background: #4338ca;
+  transform: translateY(-2px);
+}

@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { api } from "../api/axios";
 import RoomCard from "../components/RoomCard";
 import "../styling/RoomPage.css";
 
 export default function RoomsPage() {
+  const navigate = useNavigate();
+
   const [rooms, setRooms] = useState([]);
   const [search, setSearch] = useState("");
 
@@ -17,6 +20,15 @@ export default function RoomsPage() {
 
   return (
     <div className="rooms-page">
+
+      {/* 🔥 ADMIN NAV BUTTON */}
+      <button
+        className="admin-nav-btn"
+        onClick={() => navigate("/admin")}
+      >
+        ⚙ Admin
+      </button>
+
       {/* ---- HEADER ---- */}
       <div className="rooms-header">
         <h1 className="rooms-title">Available Rooms</h1>
@@ -46,13 +58,12 @@ export default function RoomsPage() {
         )}
       </div>
 
-      {/* ---- FLOATING BUTTON ---- */}
-      <button
+      {/* <button
         className="rooms-floating-btn"
-        onClick={() => (window.location.href = "/book")}
+        onClick={() => navigate("/book")}
       >
         + New Booking
-      </button>
+      </button> */}
     </div>
   );
 }

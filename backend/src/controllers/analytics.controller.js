@@ -2,7 +2,7 @@ import { rooms } from "../models/rooms.js";
 import { bookings } from "../models/bookings.js";
 
 export const getAnalytics = (req, res) => {
-    try {
+  try {
     const { from, to } = req.query;
 
     if (!from || !to) {
@@ -11,12 +11,15 @@ export const getAnalytics = (req, res) => {
 
     const startRange = new Date(from);
     const endRange = new Date(to);
+    endRange.setHours(23, 59, 59, 999); 
 
-    const confirmed = bookings.filter(b => 
-      b.status === "CONFIRMED" &&
-      new Date(b.startTime) >= startRange &&
-      new Date(b.endTime) <= endRange
-    );
+    const confirmed = bookings.filter(b => {
+      if (b.status !== "CONFIRMED") return false;
+
+      const st = new Date(b.startTime);
+
+      return st >= startRange && st <= endRange;
+    });
 
     const result = rooms.map(room => {
       const roomBookings = confirmed.filter(b => b.roomId === room.id);
@@ -25,10 +28,10 @@ export const getAnalytics = (req, res) => {
       let totalRevenue = 0;
 
       roomBookings.forEach(b => {
-        const start = new Date(b.startTime);
-        const end = new Date(b.endTime);
-        const hours = (end - start) / (1000 * 60 * 60);
-        
+        const st = new Date(b.startTime);
+        const et = new Date(b.endTime);
+        const hours = (et - st) / (1000 * 60 * 60);
+
         totalHours += hours;
         totalRevenue += b.totalPrice;
       });
@@ -44,7 +47,8 @@ export const getAnalytics = (req, res) => {
     res.json(result);
 
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).json({ error: "Server error" });
   }
 };
+
