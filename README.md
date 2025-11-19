@@ -1,109 +1,100 @@
 🚀 Workspace Booking System
 
-A complete workspace room booking platform with real-time conflict detection, dynamic pricing, admin analytics, and a polished UI — built as part of a software engineering assignment.
+A complete workspace room booking platform with dynamic pricing, conflict detection, admin analytics, and a polished UI — built as part of a software engineering assignment.
 
-Live Demo:
+Live Deployments
 
 Frontend (Vercel): https://workspace-booking-system-coral.vercel.app
 
 Backend (Render): https://workspace-booking-system-743i.onrender.com/api
 
 ✨ Features
-👤 User Features
+👤 User
 
-Browse available workspaces with rate, capacity, and features.
+Browse workspace rooms with rate, capacity, and features.
 
 Book rooms with:
 
-Start & end time selection
+Start/end time selection
 
 Dynamic pricing (peak + non-peak)
 
-Pro-rated charges for partial overlaps
+Partial overlap handling
 
-Automatic conflict detection
+Booking conflict detection
 
-Success page with:
+Success screen with:
 
 Room summary
 
-Customer details
+Customer info
 
-Price breakdown
+Total price
 
-Redirect countdown + manual "Go Home"
+Countdown redirect + manual redirect
 
-Toast notifications for all success/error states.
+Toast notifications for success/error.
 
-🛠️ Admin Features
+🛠️ Admin
 
-View all bookings:
+View all bookings with:
 
 User, room name, timings, status, price
 
-Status highlighting (Confirmed / Cancelled)
+Status colors (Confirmed/Cancelled)
 
-Cancel booking option (restricted)
+Cancel bookings
 
-Booking cancellation rule:
-✔ Cannot cancel if less than 2 hours remain
+❗Only allowed if start time is ≥ 2 hours away
 
 Analytics dashboard:
 
-Date range picker
+Date range filter
 
-Room-wise total hours booked
+Room-wise:
 
-Room-wise revenue generated
+Total hours booked
 
-Clean, structured tables
+Total revenue
 
-Admin-only toast notifications
+Admin-specific toast notifications
 
-“Home” button to return to landing page
+Home navigation button
 
-💵 Dynamic Pricing
+💰 Pricing Logic
 
-Pricing rules are based on:
+Dynamic pricing uses:
 
-Standard hourly rate (baseRate)
+Standard hourly rate
 
 Peak hours:
 
-10 AM – 1 PM
+10 AM → 1 PM
 
-4 PM – 7 PM
+4 PM → 7 PM
 
-Partial-hour overlaps are charged proportionally
+Partial peak-hour overlaps charged proportionally
 
-Custom utility handles:
+Mixed slot calculation (peak + non-peak)
 
-Full peak periods
-
-Partial peak
-
-Mixed segments
-
-Correct UTC-based calculation
-
-Backend always recalculates pricing to ensure integrity.
+Backend recalculates price to prevent manipulation
 
 ⏱ Booking Rules
 
-End time must be strictly after start time.
+End time must be after start time
 
 Maximum booking duration: 12 hours
 
-Room cannot overlap with any existing confirmed booking
+No overlapping with confirmed bookings
 
-Cancellation:
+Cancellation allowed only if:
 
-Allowed only if startTime − now ≥ 2 hours
+startTime - now ≥ 2 hours
 
 🧱 Tech Stack
 Frontend
 
-React (with Vite)
+React + Vite
 
 Axios
 
@@ -113,7 +104,7 @@ Custom CSS
 
 Toast notifications
 
-Deployed on Vercel
+Hosted on Vercel
 
 Backend
 
@@ -121,8 +112,8 @@ Node.js + Express
 
 UUID for booking IDs
 
-Custom logic utilities (pricing.js, time.js)
+Utilities: pricing.js, time.js
 
-In-memory database (rooms.js, bookings.js)
+In-memory data (rooms.js, bookings.js)
 
-Deployed on Render
+Hosted on Render
